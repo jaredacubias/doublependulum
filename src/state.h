@@ -8,16 +8,19 @@ const double g = 9.80665;
 
 class state {
     public:
-        double e[4];
+        long double e[4];
 
         state() : e{0, 0, 0, 0} {}
-        state(double e0, double e1, double e2, double e3) : e{e0, e1, e2, e3} {}
+        state(long double e0, long double e1, long double e2, long double e3) : e{e0, e1, e2, e3} {}
 
         state operator-() const { return state(-e[0], -e[1], -e[2], -e[3]); }
-        double operator[](int i) const { return e[i]; }
-        double& operator[](int i) { return e[i]; }
+        long double operator[](int i) const { return e[i]; }
+        long double& operator[](int i) { return e[i]; }
 
-        inline state getDerivative(const state& u, double m1, double m2, double l1, double l2);
+        long double const x1(float root_x, float l1, int pixpermeter) {return root_x + (l1 * pixpermeter) * cos(e[0]); }
+        long double const x2(float root_x, float l1, float l2, int pixpermeter) {return this->x1(root_x, l1, pixpermeter) + (l2 * pixpermeter) * cos(e[1]); }
+        long double const y1(float root_y, float l1, int pixpermeter) {return root_y + (l1 * pixpermeter) * sin(e[0]); }
+        long double const y2(float root_y, float l1, float l2, int pixpermeter) {return this->y1(root_y, l1, pixpermeter) + (l2 * pixpermeter) * sin(e[1]); }
 };
 
 inline std::ostream& operator<<(std::ostream& out, const state& v) {
@@ -53,22 +56,26 @@ inline state getDerivative(const state& u, double m1, double m2, double l1, doub
     derivative[1] = u[3];
 
     // frequently used variables
-    double theta1 = u[0];
-    double theta2 = u[1];
-    double omega1 = u[2];
-    double omega2 = u[3]; 
+    long double theta1 = u[0];
+    long double theta2 = u[1];
+    long double omega1 = u[2];
+    long double omega2 = u[3]; 
 
-    double dtheta = theta2 - theta1;
-    double totalm = m1 + m2;
+    long double dtheta = theta2 - theta1;
+    long double totalm = m1 + m2;
 
-    double cosdtheta = cos(dtheta);
-    double sindtheta = sin(dtheta);
+    long double cosdtheta = cos(dtheta);
+    long double sindtheta = sin(dtheta);
 
 
-    double alpha2 = (m2 * l2 * omega2 * omega2 * cosdtheta * sindtheta) + totalm * (g * cosdtheta * sin(theta1) + l1 * omega1 * omega1 * sindtheta - g * sin(theta2));
-    alpha2 = alpha2 / (l2 * (totalm - m2 * cosdtheta * cosdtheta));
+    //long double alpha2 = 0.5 * m2 * l2 * omega2 * omega2 * sin(2 * dtheta) + totalm * (l1 * omega1 * omega1 * sindtheta - g * (cosdtheta * cos(theta1) + cos(theta2)));
+    //alpha2 = alpha2 / (l2 * (m1 * cosdtheta * cosdtheta - totalm));
 
-    double alpha1 = (-m2 * l2 * alpha2 * cosdtheta - m2 * l2 * omega2 * omega2 * sindtheta - totalm * g * sin(theta1)) / (totalm * l1);
+    long double alpha2 = cosdtheta * (m2*l2*omega2*omega2*sindtheta + totalm*g*cos(theta1)) + totalm * (l1*omega1*omega1*sindtheta - g*cos(theta2));
+    alpha2 = alpha2 / (l2 * (m2*cosdtheta*cosdtheta - totalm));
+
+    long double alpha1 = m2 *l2 * omega2 * omega2 * sindtheta - m1 * l2 * alpha2 * cosdtheta + totalm * g * cos(theta1);
+    alpha1 = alpha1 / (totalm * l1);
     
     derivative[2] = alpha1;
     derivative[3] = alpha2;
