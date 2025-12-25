@@ -3,6 +3,7 @@
 #include <string.h>
 #include "state.h"
 #include "node.h"
+#include <vector>
 
 constexpr double PI = 3.14159265358979323846;
 
@@ -11,7 +12,7 @@ const double theta2init = PI/2;
 const double omega1init = 2;
 const double omega2init = -2;
 
-const double dt = 0.01/60.0;
+const double dt = 0.01/144.0;
 
 const double m1 = 2;
 const double m2 = 2;
@@ -28,12 +29,14 @@ const float ROOT_X = W_WIDTH / 2;
 const float ROOT_Y = W_HEIGHT / 2;
 
 void drawPendulum(state v, sf::RenderWindow& window, sf::CircleShape c1, sf::CircleShape c2, sf::RectangleShape r1, sf::RectangleShape r2);
-void drawPath(CordNode &head, sf::RenderWindow& window);
+void drawPath(std::vector<sf::RectangleShape> lines, sf::RenderWindow& window);
+float const distance(float x1, float x2, float y1, float y2);
+float const sfml_angle(float x1, float y1, float x2, float y2);
 
 int main()
 {
     sf::RenderWindow window = sf::RenderWindow(sf::VideoMode({W_WIDTH, W_HEIGHT}), "double pendulum");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(144);
     sf::Font font;
     if (!font.openFromFile("src/arial.ttf"))
     {
@@ -61,9 +64,7 @@ int main()
     rope2.setFillColor(sf::Color::White);
     rope2.setOrigin({0, 2.5});
 
-    CordNode head;
-    head.cords.first = currstate.x2(ROOT_X, l1, l2, pixpermeter);
-    head.cords.second = currstate.y2(ROOT_Y, l1, l2, pixpermeter);
+    std::vector<sf::RectangleShape> lines;
 
     bool paused = true;
     while (window.isOpen())
@@ -109,10 +110,27 @@ int main()
         // inside the main loop, between window.clear() and window.display()
         window.draw(text);
         if (!paused)
-        for (int i = 0; i < 100; ++i)
         {
-            currstate = rk4(currstate, m1, m2, l1, l2, dt);
+            float line_width = 5.f;
+
+            float xi = currstate.x2(ROOT_X, l1, l2, pixpermeter);
+            float yi = currstate.y2(ROOT_Y, l1, l2, pixpermeter);
+            for (int i = 0; i < 100; ++i)
+            {
+                currstate = rk4(currstate, m1, m2, l1, l2, dt);
+            }
+            // Add a 
+            float xf = currstate.x2(ROOT_X, l1, l2, pixpermeter);
+            float yf = currstate.y2(ROOT_Y, l1, l2, pixpermeter);
+            float d = distance(xf, yf, xi, yi);
+            sf::RectangleShape line({d, line_width});
+            line.setFillColor(sf::Color(220, 30, 30, 64));
+            line.setOrigin({0, line_width/2});
+            line.setPosition({xi, yi});
+            line.setRotation(sf::radians(sfml_angle(xi, yi, xf, yf)));
+            lines.push_back(line);
         }
+        drawPath(lines, window);
         drawPendulum(currstate, window, circ_m1, circ_m2, rope1, rope2);
         window.display();
     }
@@ -148,7 +166,24 @@ void drawPendulum(state v, sf::RenderWindow& window, sf::CircleShape c1, sf::Cir
     window.draw(r2);
 }
 
-void drawPath(CordNode &head, sf::RenderWindow& window)
+void drawPath(std::vector<sf::RectangleShape> lines, sf::RenderWindow& window)
 {
+    for (sf::RectangleShape line : lines)
+    {
+        window.draw(line);
+    }
+}
 
+float const distance(float x1, float y1, float x2, float y2)
+{
+    float x = (x2 - x1);
+    float y = (y2 - y1);
+    return sqrt(x*x + y*y);
+}
+
+float const sfml_angle(float x1, float y1, float x2, float y2)
+{
+    float x = (x2 - x1);
+    float y = (y2 - y1);
+    return -atan2(y, x);
 }
