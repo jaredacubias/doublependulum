@@ -1,13 +1,18 @@
+#define FMT_HEADER_ONLY
+
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <string.h>
 #include "state.h"
 #include "node.h"
 #include <vector>
+#include <sstream>
+#include <print>
+#include <fmt/core.h>
 
 constexpr double PI = 3.14159265358979323846;
 
-const double theta1init = -1;
+const double theta1init = -PI;
 const double theta2init = PI/2;
 const double omega1init = 2;
 const double omega2init = -2;
@@ -38,7 +43,7 @@ int main()
     sf::RenderWindow window = sf::RenderWindow(sf::VideoMode({W_WIDTH, W_HEIGHT}), "double pendulum");
     window.setFramerateLimit(144);
     sf::Font font;
-    if (!font.openFromFile("src/arial.ttf"))
+    if (!font.openFromFile("src/Fixedsys62.ttf"))
     {
         exit(1);
     }
@@ -83,32 +88,32 @@ int main()
         }
         window.clear();
 
-        // drawPendulum(currstate);
-        // updateText(currstate);
-
-        sf::Text text(font); // a font is required to make a text object
-
-        // set the string to display
-
         double ke1 = 0.5 * m1 * l1 * l1 * currstate[2] * currstate[2];
         double pe1 = -m1 * g * l1 * sin(currstate[0]);
         double v2x = -l1 * sin(currstate[0]) * currstate[2] - l2 * sin(currstate[1]) * currstate[3];
         double ke2 = 0.5 * m2 * (l1*l1*currstate[2]*currstate[2] + l2*l2*currstate[3]*currstate[3] + 2*l1*l2*currstate[2]*currstate[3]*cos(currstate[1]-currstate[0]));
         double pe2 = -m2 * g * (l1 * sin(currstate[0]) + l2 * sin(currstate[1]));
+        double total_pe = pe1 + pe2;
+        double total_ke = ke1 + ke1;
         double total_energy = pe1 + pe2 + ke1 + ke2;
-        text.setString(std::to_string(total_energy));
+
+        sf::Text energy_text(font);
+        std::stringstream ss;
+        ss << "KE1: " << std::fixed << std::setw(10) << std::setprecision(5) << ke1 << " J\nKE2: " << std::setprecision(5) << ke2 << " J\nPE1: " << std::fixed << std::setprecision(5) << pe1 << " J\nPE2: " << std::setprecision(5) << pe2 << " J\nTotal: " << std::setprecision(5) << total_energy << " J";
+        std::string energy_string = fmt::format("{:>5s}: {:10.6f} J\n{:>5s}: {:10.6f} J\n{:>5s}: {:10.6f} J\n{:>5s}: {:10.6f} J\n{:>5s}: {:10.6f} J", "KE1", ke1, "KE2", ke2, "PE1", pe1, "PE2", pe2, "TOTAL", total_energy);
+        energy_text.setString(energy_string);
 
         // set the character size
-        text.setCharacterSize(100); // in pixels, not points!
+        energy_text.setCharacterSize(18); // in pixels, not points!
 
         // set the color
-        text.setFillColor(sf::Color::White);
-
+        energy_text.setFillColor(sf::Color::White);
+        
         // set the text style
-        text.setStyle(sf::Text::Italic | sf::Text::Underlined);
-        text.setPosition({15, 55});
+        energy_text.setStyle(sf::Text::Italic);
+        energy_text.setPosition({60, 550});
         // inside the main loop, between window.clear() and window.display()
-        window.draw(text);
+        window.draw(energy_text);
         if (!paused)
         {
             float line_width = 5.f;
@@ -124,7 +129,7 @@ int main()
             float yf = currstate.y2(ROOT_Y, l1, l2, pixpermeter);
             float d = distance(xf, yf, xi, yi);
             sf::RectangleShape line({d, line_width});
-            line.setFillColor(sf::Color(220, 30, 30, 64));
+            line.setFillColor(sf::Color::Blue);
             line.setOrigin({0, line_width/2});
             line.setPosition({xi, yi});
             line.setRotation(sf::radians(sfml_angle(xi, yi, xf, yf)));
