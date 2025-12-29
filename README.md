@@ -1,5 +1,5 @@
 # Double Pendulum
-this project simulates a double pendulum using rk4 and sfml
+this project simulates a double pendulum using rk4 and sfml. [this video](https://youtu.be/dBwwulr-M1s) demonstrates the simulation
 
 in order to compile using cmake:
 ```
