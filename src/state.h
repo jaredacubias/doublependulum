@@ -94,11 +94,13 @@ inline State rk4(const State &u, double m1, double m2, double l1, double l2, dou
     State f4 = getDerivative(u + (dt) * f3, m1, m2, l1, l2);
     State next = u + (dt/6) * (f1 + 2*f2 + 2*f3 + f4);
     std::cout << (dt/6) * (f1 + 2*f2 + 2*f3 + f4) << '\n';
+    /*
     std::cout << f1 << '\n';
     std::cout << f2 << '\n';
     std::cout << f3 << '\n';
     std::cout << f4 << '\n';
     std::cout << next << '\n';
+    */
     return next;
 }
 

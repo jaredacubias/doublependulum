@@ -9,6 +9,15 @@
 #include <random>
 #include "linepath.h"
 
+#include <climits> // Ensure this is included
+
+#ifdef _WIN32
+    #include <windows.h> // Provides MAX_PATH
+    #ifndef PATH_MAX
+        #define PATH_MAX MAX_PATH
+    #endif
+#endif
+
 #define W_WIDTH 1280u
 #define W_HEIGHT 720u
 #define M_RADIUS 10.f
@@ -28,10 +37,10 @@ const double dt = 0.01/FPS;
 
 const double m1 = 2;
 const double m2 = 2;
-const float l1 = 3;
-const float l2 = 2;
+const float l1 = .5;
+const float l2 = 1;
 
-const float pixpermeter = 30;
+const float pixpermeter = 150;
 
 
 
