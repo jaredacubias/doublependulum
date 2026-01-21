@@ -11,4 +11,4 @@ to run with random initial conditions:
 ```/build/bin/main```
 
 to run with fixed initial conditions (θ1, θ2, ω1, ω2):
-```/build/bin/main θ1, θ2, ω1, ω2 ```
+```/build/bin/main θ1 θ2 ω1 ω2 ```
